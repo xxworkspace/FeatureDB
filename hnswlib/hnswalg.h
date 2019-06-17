@@ -505,26 +505,26 @@ namespace hnswlib {
       }
       output.resize(size);
 
-      writeBinaryPOD(output, offsetLevel0_);
-      writeBinaryPOD(output, max_elements_);
-      writeBinaryPOD(output, cur_element_count);
-      writeBinaryPOD(output, size_data_per_element_);
-      writeBinaryPOD(output, label_offset_);
-      writeBinaryPOD(output, offsetData_);
-      writeBinaryPOD(output, maxlevel_);
-      writeBinaryPOD(output, enterpoint_node_);
-      writeBinaryPOD(output, maxM_);
-      writeBinaryPOD(output, maxM0_);
-      writeBinaryPOD(output, M_);
-      writeBinaryPOD(output, mult_);
-      writeBinaryPOD(output, ef_construction_);
+      writeBinaryPOD(&output[0], offsetLevel0_,pos);
+      writeBinaryPOD(&output[0], max_elements_,pos);
+      writeBinaryPOD(&output[0], cur_element_count,pos);
+      writeBinaryPOD(&output[0], size_data_per_element_,pos);
+      writeBinaryPOD(&output[0], label_offset_,pos);
+      writeBinaryPOD(&output[0], offsetData_,pos);
+      writeBinaryPOD(&output[0], maxlevel_,pos);
+      writeBinaryPOD(&output[0], enterpoint_node_,pos);
+      writeBinaryPOD(&output[0], maxM_,pos);
+      writeBinaryPOD(&output[0], maxM0_,pos);
+      writeBinaryPOD(&output[0], M_,pos);
+      writeBinaryPOD(&output[0], mult_,pos);
+      writeBinaryPOD(&output[0], ef_construction_,pos);
 
       memcpy(&output[pos], data_level0_memory_, cur_element_count * size_data_per_element_);
       pos += cur_element_count * size_data_per_element_;
 
       for (size_t i = 0; i < cur_element_count; i++) {
         unsigned int linkListSize = element_levels_[i] > 0 ? size_links_per_element_ * element_levels_[i] : 0;
-        writeBinaryPOD(&output[pos], linkListSize,pos);
+        writeBinaryPOD(&output[0], linkListSize,pos);
         if (linkListSize) {
           memcpy(&output[pos], linkLists_[i], linkListSize);
           pos += linkListSize;
@@ -563,27 +563,27 @@ namespace hnswlib {
       output.close();
     }
 
-    void loadIndex(const std::vector<char*> input) {
+    void loadIndex(const std::vector<char> input) {
       size_t pos = 0;
-      readBinaryPOD(input, offsetLevel0_);
-      readBinaryPOD(input, max_elements_);
-      readBinaryPOD(input, cur_element_count);
-	  readBinaryPOD(input, size_data_per_element_);
-      readBinaryPOD(input, label_offset_);
-      readBinaryPOD(input, offsetData_);
-      readBinaryPOD(input, maxlevel_);
-      readBinaryPOD(input, enterpoint_node_);
-      readBinaryPOD(input, maxM_);
-      readBinaryPOD(input, maxM0_);
-      readBinaryPOD(input, M_);
-      readBinaryPOD(input, mult_);
-      readBinaryPOD(input, ef_construction_);
+      readBinaryPOD(&input[0], offsetLevel0_,pos);
+      readBinaryPOD(&input[0], max_elements_,pos);
+      readBinaryPOD(&input[0], cur_element_count,pos);
+	  readBinaryPOD(&input[0], size_data_per_element_,pos);
+      readBinaryPOD(&input[0], label_offset_,pos);
+      readBinaryPOD(&input[0], offsetData_,pos);
+      readBinaryPOD(&input[0], maxlevel_,pos);
+      readBinaryPOD(&input[0], enterpoint_node_,pos);
+      readBinaryPOD(&input[0], maxM_,pos);
+      readBinaryPOD(&input[0], maxM0_,pos);
+      readBinaryPOD(&input[0], M_,pos);
+      readBinaryPOD(&input[0], mult_,pos);
+      readBinaryPOD(&input[0], ef_construction_,pos);
 
       memcpy(data_level0_memory_, &input[pos], cur_element_count * size_data_per_element_);
       pos += cur_element_count * size_data_per_element_;
       for (size_t i = 0; i < cur_element_count; i++) {
         unsigned int linkListSize;
-        readBinaryPOD(input, linkListSize,pos);
+        readBinaryPOD(&input[0], linkListSize,pos);
         element_levels_[i] = linkListSize / size_links_per_element_;
         if (linkListSize != 0) {
           linkLists_[i] = (char *)malloc(linkListSize);

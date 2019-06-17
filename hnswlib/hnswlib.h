@@ -41,13 +41,13 @@ namespace hnswlib {
     }
 
     template<typename T>
-    static void writeBinaryPOD(char*& out,const T &podRef,size_t pos){
+    static void writeBinaryPOD(char* out,const T &podRef,size_t& pos){
         memcpy(&out[pos],&podRef,sizeof(T));
 		pos += sizeof(T);
     }
 
 	template<typename T>
-    static void readBinaryPOD(char*& in,T& podRef,size_t pos){
+    static void readBinaryPOD(const char* in,T& podRef,size_t& pos){
         memcpy((char*)&podRef,&in[pos],sizeof(T));
         pos += sizeof(T);
 	}

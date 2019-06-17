@@ -1,7 +1,10 @@
 
 #include "FeatureDB.h"
+#include "hnswlib/hnswalg.h"
 
 namespace fdb {
+
+  typedef hnswlib::HierarchicalNSW<float> INDEX;
   template<class T>
   FeatureDB<T>::FeatureDB(
     std::string space_name,
@@ -9,12 +12,12 @@ namespace fdb {
     const unsigned M,
     const unsigned max_elements,
     const unsigned query_ef,
-    const unsigned construction_ef
-    std::string dtype = "float")
+    const unsigned construction_ef,
+    std::string dtype)
     :Dim(dim) {
     normalize = false;
     initialize = false;
-    hnswlib::SpaceInterface<T> *space;
+    hnswlib::SpaceInterface<float> *space;
     if (space_name == "ip") space = new hnswlib::InnerProductSpace(dim);
     else if (space_name == "l2") space = new hnswlib::L2Space(dim);
     else if (space_name == "cosine") {
@@ -22,20 +25,19 @@ namespace fdb {
       normalize = true;
     }
 
-    hnsw = new hnswlib::HierarchicalNSW<float>(space, max_elements, M, construction_ef);
-    hnsw->ef_ = query_ef;
+    hnsw = (void*)new INDEX(space, max_elements, M, construction_ef);
+    ((INDEX*)hnsw)->ef_ = query_ef;
   }
 
   template<class T>
   FeatureDB<T>::~FeatureDB() {
-    delete space;
-    delete hnsw;
+    delete (INDEX*)hnsw;
   }
 
   template<class T>
-  FeatureDB<T>::void normalization(T* src, T* dst, unsigned dim) {
+  void FeatureDB<T>::normalization(T* src, T* dst, unsigned dim) {
     T* tmp = src;
-    T* sum = 0;
+    T sum = 0;
     for (int i = 0; i < dim; ++i) {
       sum += (*tmp)*(*tmp);
       ++tmp;
@@ -46,51 +48,52 @@ namespace fdb {
   }
 
   template<class T>
-  FeatureDB<T>::unsigned size() {
-    return hnsw->cur_element_count;
+  unsigned FeatureDB<T>::size() {
+    return ((INDEX*)hnsw)->cur_element_count;
   }
 
   template<class T>
-  FeatureDB<T>::const std::vector<char>& dump() {
+  const std::vector<char>& FeatureDB<T>::dump() {
     std::vector<char> serial;
-    hnsw->saveIndex(serial);
+    ((INDEX*)hnsw)->saveIndex(serial);
     return serial;
   }
 
   template<class T>
-  FeatureDB<T>::bool load(const std::vector<char>& serial) {
+  bool FeatureDB<T>::load(const std::vector<char>& serial) {
     if (initialize) return false;
     initialize = true;
-    hnsw->loadIndex(serial);
+    ((INDEX*)hnsw)->loadIndex(serial);
     return true;
   }
 
-  #CHECK_DIM(obj, src) \
-    if (obj != src) return false;
+  #define CHECK_DIM(obj, src, rt) \
+    if (obj != src) return rt;
 
   template<class T>
-  FeatureDB<T>::bool insert(std::vector<T> data, uint64_t label) {
+  bool FeatureDB<T>::insert(std::vector<T> data, uint64_t label) {
     initialize = true;
-    CHECK_DIM(data.size(), Dim)
-      if (normalization) {
-        float *tmp = new float[Dim];
-        normalization(&data[0], tmp, Dim);
-        hnsw->addPoint(tmp, label);
-        delete tmp;
-      }
-      else
-        hnsw->addPoint(&data[0], label);
-    return true;
-  }
-
-  template<class T>
-  FeatureDB<T>::std::vector<pair<float, uint64_t>>& query(std::vector<T> data, unsigned k) {
-    std::vector<pair<float, uint64_t>> result;
-    CHECK_DIM(data.size(), Dim)
+    CHECK_DIM(data.size(), Dim,false)
       if (normalize) {
         float *tmp = new float[Dim];
         normalization(&data[0], tmp, Dim);
-        auto top_candidate = hnsw->searchKnn(tmp, k);
+        ((INDEX*)hnsw)->addPoint(tmp, label);
+        delete tmp;
+      }
+      else
+        ((INDEX*)hnsw)->addPoint(&data[0], label);
+    return true;
+  }
+
+  template<class T>
+  std::vector<std::pair<float, uint64_t>>& FeatureDB<T>::query(std::vector<T> data, unsigned k) {
+    std::vector<std::pair<float, uint64_t>> result;
+    CHECK_DIM(data.size(), Dim, result)
+
+      if (normalize) {
+        float *tmp = new float[Dim];
+        normalization(&data[0], tmp, Dim);
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
         unsigned count = top_candidate.size();
         for (int i = count - 1; i >= 0; --i) {
           result[i] = top_candidate.top();
@@ -99,7 +102,7 @@ namespace fdb {
         delete tmp;
       }
       else {
-        auto top_candidate = hnsw->searchKnn(tmp, k);
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
         result.resize(top_candidate.size());
         unsigned count = top_candidate.size();
         for (int i = count - 1; i >= 0; --i) {
@@ -111,46 +114,45 @@ namespace fdb {
   }
 
   template<class T>
-  FeatureDB<T>::std::vector<pair<float, uint64_t>> queryAndInsert(std::vector<T> data, uint64_t label, unsigned k, ) {
-    std::vector<pair<float, uint64_t>> result;
-    if (data.size() != Dim) return result;
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T> data, uint64_t label, unsigned k) {
+    std::vector<std::pair<float, uint64_t>> result;
+    CHECK_DIM(data.size(), Dim, result)
 
-    if (normalization) {
+    if (normalize) {
       float* tmp = new float[Dim];
       normalization(&data[0], tmp, Dim);
-      auto top_candidate = hnsw->searchKnn(tmp, k);
+      auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
       result.resize(top_candidate.size());
       unsigned count = top_candidate.size();
       for (int i = count - 1; i >= 0; --i) {
         result[i] = top_candidate.top();
         top_candidate.pop();
       }
-      hnsw->addPoint(tmp, label);
+      ((INDEX*)hnsw)->addPoint(tmp, label);
       delete tmp;
     }
     else {
-      auto top_candidate = hnsw->searchKnn(&data[0], k);
-      std::vector<pair<float, uint64_t>> result;
+      auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
       result.resize(top_candidate.size());
       unsigned count = top_candidate.size();
       for (int i = count - 1; i >= 0; --i) {
         result[i] = top_candidate.top();
         top_candidate.pop();
       }
-      hnsw->addPoint(&data[0], label);
+      ((INDEX*)hnsw)->addPoint(&data[0], label);
     }
     return result;
   }
 
   template<class T>
-  FeatureDB<T>::std::vector<pair<uint64_t, float>> queryAndInsert(std::vector<T> data, uint64_t label, float threshold, unsigned k) {
-    std::vector<pair<float, uint64_t>> result;
-    if (data.size() != Dim) return result;
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T> data, uint64_t label, float threshold, unsigned k) {
+    std::vector<std::pair<float, uint64_t>> result;
+    CHECK_DIM(data.size(), Dim, result)
 
-    if (normalization) {
+    if (normalize) {
       float* tmp = new float[Dim];
       normalization(&data[0], tmp, Dim);
-      auto top_candidate = hnsw->searchKnn(tmp, k);
+      auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
       result.resize(top_candidate.size());
       unsigned count = top_candidate.size();
       for (int i = count - 1; i >= 0; --i) {
@@ -158,12 +160,11 @@ namespace fdb {
         top_candidate.pop();
       }
       if (result[0].first > threshold)
-        hnsw->addPoint(tmp, label);
+        ((INDEX*)hnsw)->addPoint(tmp, label);
       delete tmp;
     }
     else {
-      auto top_candidate = hnsw->searchKnn(&data[0], k);
-      std::vector<pair<float, uint64_t>> result;
+      auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
       result.resize(top_candidate.size());
       unsigned count = top_candidate.size();
       for (int i = count - 1; i >= 0; --i) {
@@ -171,7 +172,7 @@ namespace fdb {
         top_candidate.pop();
       }
       if (result[0].first > threshold)
-        hnsw->addPoint(&data[0], label);
+        ((INDEX*)hnsw)->addPoint(&data[0], label);
     }
     return result;
   }

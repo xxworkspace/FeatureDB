@@ -67,13 +67,13 @@ namespace fdb {
     return true;
   }
 
-  #define CHECK_DIM(obj, src, rt) \
+#define CHECK_DIM(obj, src, rt) \
     if (obj != src) return rt;
 
   template<class T>
   bool FeatureDB<T>::insert(std::vector<T> data, uint64_t label) {
     initialize = true;
-    CHECK_DIM(data.size(), Dim,false)
+    CHECK_DIM(data.size(), Dim, false)
       if (normalize) {
         float *tmp = new float[Dim];
         normalization(&data[0], tmp, Dim);
@@ -118,29 +118,29 @@ namespace fdb {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 
-    if (normalize) {
-      float* tmp = new float[Dim];
-      normalization(&data[0], tmp, Dim);
-      auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
-      result.resize(top_candidate.size());
-      unsigned count = top_candidate.size();
-      for (int i = count - 1; i >= 0; --i) {
-        result[i] = top_candidate.top();
-        top_candidate.pop();
+      if (normalize) {
+        float* tmp = new float[Dim];
+        normalization(&data[0], tmp, Dim);
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
+        result.resize(top_candidate.size());
+        unsigned count = top_candidate.size();
+        for (int i = count - 1; i >= 0; --i) {
+          result[i] = top_candidate.top();
+          top_candidate.pop();
+        }
+        ((INDEX*)hnsw)->addPoint(tmp, label);
+        delete tmp;
       }
-      ((INDEX*)hnsw)->addPoint(tmp, label);
-      delete tmp;
-    }
-    else {
-      auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
-      result.resize(top_candidate.size());
-      unsigned count = top_candidate.size();
-      for (int i = count - 1; i >= 0; --i) {
-        result[i] = top_candidate.top();
-        top_candidate.pop();
+      else {
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
+        result.resize(top_candidate.size());
+        unsigned count = top_candidate.size();
+        for (int i = count - 1; i >= 0; --i) {
+          result[i] = top_candidate.top();
+          top_candidate.pop();
+        }
+        ((INDEX*)hnsw)->addPoint(&data[0], label);
       }
-      ((INDEX*)hnsw)->addPoint(&data[0], label);
-    }
     return result;
   }
 
@@ -149,31 +149,31 @@ namespace fdb {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 
-    if (normalize) {
-      float* tmp = new float[Dim];
-      normalization(&data[0], tmp, Dim);
-      auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
-      result.resize(top_candidate.size());
-      unsigned count = top_candidate.size();
-      for (int i = count - 1; i >= 0; --i) {
-        result[i] = top_candidate.top();
-        top_candidate.pop();
+      if (normalize) {
+        float* tmp = new float[Dim];
+        normalization(&data[0], tmp, Dim);
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
+        result.resize(top_candidate.size());
+        unsigned count = top_candidate.size();
+        for (int i = count - 1; i >= 0; --i) {
+          result[i] = top_candidate.top();
+          top_candidate.pop();
+        }
+        if (result[0].first > threshold)
+          ((INDEX*)hnsw)->addPoint(tmp, label);
+        delete tmp;
       }
-      if (result[0].first > threshold)
-        ((INDEX*)hnsw)->addPoint(tmp, label);
-      delete tmp;
-    }
-    else {
-      auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
-      result.resize(top_candidate.size());
-      unsigned count = top_candidate.size();
-      for (int i = count - 1; i >= 0; --i) {
-        result[i] = top_candidate.top();
-        top_candidate.pop();
+      else {
+        auto top_candidate = ((INDEX*)hnsw)->searchKnn(&data[0], k);
+        result.resize(top_candidate.size());
+        unsigned count = top_candidate.size();
+        for (int i = count - 1; i >= 0; --i) {
+          result[i] = top_candidate.top();
+          top_candidate.pop();
+        }
+        if (result[0].first > threshold)
+          ((INDEX*)hnsw)->addPoint(&data[0], label);
       }
-      if (result[0].first > threshold)
-        ((INDEX*)hnsw)->addPoint(&data[0], label);
-    }
     return result;
   }
 

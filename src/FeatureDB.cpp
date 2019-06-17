@@ -53,7 +53,7 @@ namespace fdb {
   }
 
   template<class T>
-  const std::vector<char>& FeatureDB<T>::dump() {
+  const std::vector<char> FeatureDB<T>::dump() {
     std::vector<char> serial;
     ((INDEX*)hnsw)->saveIndex(serial);
     return serial;
@@ -86,7 +86,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>>& FeatureDB<T>::query(std::vector<T> data, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::query(std::vector<T> data, unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 

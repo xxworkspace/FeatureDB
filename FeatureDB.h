@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-namespace fdb {
+namespace bigo::ml {
   template<class T = float>
   class FeatureDB {
   private:

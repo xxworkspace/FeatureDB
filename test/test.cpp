@@ -25,7 +25,7 @@ int main(){
   std::vector<float*> data;
   fvecs("sift_query.fvecs",data,dim);
   
-  fdb::FeatureDB<float> db("cosine",dim,60,3600000,120,360);
+  bigo::ml::FeatureDB<float> db("cosine",dim,60,3600000,120,360);
   for(int i = 0 ; i < 10000 ; i++){
     std::vector<float> dt(data[i],data[i] + dim);
 	db.insert(dt,i);

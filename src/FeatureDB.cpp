@@ -7,13 +7,13 @@ namespace fdb {
   typedef hnswlib::HierarchicalNSW<float> INDEX;
   template<class T>
   FeatureDB<T>::FeatureDB(
-    std::string space_name,
+    const std::string space_name,
     const unsigned dim,
     const unsigned M,
     const unsigned max_elements,
     const unsigned query_ef,
     const unsigned construction_ef,
-    std::string dtype)
+    const std::string dtype)
     :Dim(dim) {
     normalize = false;
     initialize = false;
@@ -26,7 +26,7 @@ namespace fdb {
     }
 
     hnsw = (void*)new INDEX(space, max_elements, M, construction_ef);
-    ((INDEX*)hnsw)->ef_ = query_ef;
+    ((INDEX*)hnsw)->setEf(query_ef);
   }
 
   template<class T>
@@ -35,8 +35,8 @@ namespace fdb {
   }
 
   template<class T>
-  void FeatureDB<T>::normalization(T* src, T* dst, unsigned dim) {
-    T* tmp = src;
+  void FeatureDB<T>::normalization(const T* src, T* dst,const unsigned dim) {
+    const T* tmp = src;
     T sum = 0;
     for (int i = 0; i < dim; ++i) {
       sum += (*tmp)*(*tmp);
@@ -71,7 +71,7 @@ namespace fdb {
     if (obj != src) return rt;
 
   template<class T>
-  bool FeatureDB<T>::insert(std::vector<T>& data, uint64_t label) {
+  bool FeatureDB<T>::insert(const std::vector<T>& data,const uint64_t label) {
     initialize = true;
     CHECK_DIM(data.size(), Dim, false)
       if (normalize) {
@@ -86,14 +86,14 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::query(std::vector<T>& data, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::query(const std::vector<T>& data,const unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
-
       if (normalize) {
         float *tmp = new float[Dim];
         normalization(&data[0], tmp, Dim);
         auto top_candidate = ((INDEX*)hnsw)->searchKnn(tmp, k);
+		result.resize(top_candidate.size());
         unsigned count = top_candidate.size();
         for (int i = count - 1; i >= 0; --i) {
           result[i] = top_candidate.top();
@@ -114,7 +114,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T>& data, uint64_t label, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(const std::vector<T>& data,const uint64_t label,const unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 
@@ -145,7 +145,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T>& data, uint64_t label, float threshold, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(const std::vector<T>& data,const uint64_t label,const float threshold,const unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 

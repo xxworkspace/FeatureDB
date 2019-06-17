@@ -26,7 +26,7 @@ int main(){
   fvecs("sift_query.fvecs",data,dim);
   
   fdb::FeatureDB<float> db("l2",dim,60,3600000,120,360);
-  for(int i = 0 ; i < 1000 ; i++){
+  for(int i = 0 ; i < 10000 ; i++){
     std::vector<float> dt(data[i],data[i] + dim);
 	db.insert(dt,i);
   }

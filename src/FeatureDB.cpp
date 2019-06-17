@@ -71,7 +71,7 @@ namespace fdb {
     if (obj != src) return rt;
 
   template<class T>
-  bool FeatureDB<T>::insert(std::vector<T> data, uint64_t label) {
+  bool FeatureDB<T>::insert(const std::vector<T>& data, uint64_t label) {
     initialize = true;
     CHECK_DIM(data.size(), Dim, false)
       if (normalize) {
@@ -86,7 +86,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::query(std::vector<T> data, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::query(const std::vector<T>& data, unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 
@@ -114,7 +114,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T> data, uint64_t label, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(const std::vector<T>& data, uint64_t label, unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 
@@ -145,7 +145,7 @@ namespace fdb {
   }
 
   template<class T>
-  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(std::vector<T> data, uint64_t label, float threshold, unsigned k) {
+  std::vector<std::pair<float, uint64_t>> FeatureDB<T>::queryAndInsert(const std::vector<T>& data, uint64_t label, float threshold, unsigned k) {
     std::vector<std::pair<float, uint64_t>> result;
     CHECK_DIM(data.size(), Dim, result)
 

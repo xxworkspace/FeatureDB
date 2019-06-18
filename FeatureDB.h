@@ -9,7 +9,8 @@
 #include <unordered_set>
 #include <unordered_map>
 
-namespace bigo::ml {
+namespace bigo{
+namespace ml {
   template<class T = float>
   class FeatureDB {
   private:
@@ -36,4 +37,5 @@ namespace bigo::ml {
     std::vector<std::pair<float, uint64_t>> queryAndInsert(const std::vector<T>& data,const uint64_t label,const unsigned k);
     std::vector<std::pair<float, uint64_t>> queryAndInsert(const std::vector<T>& data,const uint64_t label,const float threshold,const unsigned k);
   };
+}
 }

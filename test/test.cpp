@@ -26,23 +26,26 @@ void fvecs(std::string filename,std::vector<float*> &data, int& dim) {
 int main(){
   int dim;
   std::vector<float*> data;
+  //std::vector<float*> query;
   fvecs("sift_query.fvecs",data,dim);
+  //fvecs("sift_query.fvecs",query,dim);
   
   bigo::ml::FeatureDB<float> db("cosine",dim,60,3600000,120,360);
-  for(int i = 0 ; i < 10000 ; i++){
+#pragma omp parallel for
+  for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> dt(data[i],data[i] + dim);
-	db.insert(dt,i);
+    db.insert(dt,i);
   }
 
 #pragma omp parallel for
-  for(int i = 0 ; i < 10000 ; i++){
+  for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> qr(data[i],data[i] + dim);
     auto rs = db.query(qr,2);
     for(auto tmp : rs)
       std::cout<<i<<" "<<tmp.first<<" "<<tmp.second<<tmp.second<<"  ||  ";
     std::cout<<std::endl;
   }
-  
+
   auto serial = db.dump();
   return 0;
 }

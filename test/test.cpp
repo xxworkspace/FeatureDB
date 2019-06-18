@@ -39,7 +39,7 @@ int main(){
     std::vector<float> qr(data[i],data[i] + dim);
     auto rs = db.query(qr,2);
     for(auto tmp : rs)
-      std::cout<<tmp.first<<" "<<tmp.second<<tmp.second<<"  ||  ";
+      std::cout<<i<<" "<<tmp.first<<" "<<tmp.second<<tmp.second<<"  ||  ";
     std::cout<<std::endl;
   }
   

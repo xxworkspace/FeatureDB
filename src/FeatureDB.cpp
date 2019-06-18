@@ -75,14 +75,14 @@ namespace ml{
   bool FeatureDB<T>::insert(const std::vector<T>& data,const uint64_t label) {
     initialize = true;
     CHECK_DIM(data.size(), Dim, false)
-      if (normalize) {
-        float *tmp = new float[Dim];
-        normalization(&data[0], tmp, Dim);
-        ((INDEX*)hnsw)->addPoint(tmp, label);
-        delete tmp;
-      }
-      else
-        ((INDEX*)hnsw)->addPoint(&data[0], label);
+    if (normalize) {
+      float *tmp = new float[Dim];
+      normalization(&data[0], tmp, Dim);
+      ((INDEX*)hnsw)->addPoint(tmp, label);
+      delete tmp;
+    }
+    else
+      ((INDEX*)hnsw)->addPoint(&data[0], label);
     return true;
   }
 

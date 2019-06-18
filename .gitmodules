@@ -1,3 +1,3 @@
-[submodule "hnswlib"]
-	path = hnswlib
-	url = http://git.sysop.bigo.sg/feature-db/hnswlib.git
+[submodule "HierarchicalNSW"]
+	path = HierarchicalNSW
+	url = http://git.sysop.bigo.sg/feature-db/HierarchicalNSW.git

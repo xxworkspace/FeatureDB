@@ -2,7 +2,8 @@
 #include "FeatureDB.h"
 #include "hnswlib/hnswalg.h"
 
-namespace bigo::ml {
+namespace bigo{
+namespace ml{
 
   typedef hnswlib::HierarchicalNSW<float> INDEX;
   template<class T>
@@ -178,4 +179,5 @@ namespace bigo::ml {
   }
 
   template class FeatureDB<float>;
+}
 }

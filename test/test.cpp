@@ -4,6 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include "FeatureDB.h"
+#include <thread>
+#include <mutex>
+#include <omp.h>
 
 void fvecs(std::string filename,std::vector<float*> &data, int& dim) {
   std::ifstream ifs(filename, std::ios::binary);
@@ -31,7 +34,8 @@ int main(){
 	db.insert(dt,i);
   }
 
-  for(int i = 0 ; i < 100 ; i++){
+#pragma omp parallel for
+  for(int i = 0 ; i < 10000 ; i++){
     std::vector<float> qr(data[i],data[i] + dim);
     auto rs = db.query(qr,2);
     for(auto tmp : rs)

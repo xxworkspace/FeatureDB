@@ -57,6 +57,17 @@ namespace ml {
     return true;
   }
 
+  template<class T>
+  void FeatureDB<T>::save(const std::string filename){
+    ((INDEX*)hnsw)->writeOut(filename);
+  }
+  template<class T>
+  bool FeatureDB<T>::restore(const std::string filename){
+    if(initialize) return false;
+    ((INDEX*)hnsw)->readIn(filename);
+    initialize = true;
+    return true;
+  }
 #define CHECK_EQ(obj, src, rt) \
     if (obj != src) return rt;
 

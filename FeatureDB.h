@@ -32,6 +32,8 @@ namespace ml {
     unsigned size();
     const std::vector<char> dump();
     bool load(const std::vector<char>& serial);
+    void save(const std::string);
+    bool restore(const std::string);
     bool insert(const std::vector<T>& data,const uint64_t label);
     std::vector<std::pair<float, uint64_t>> query(const std::vector<T>&data, unsigned k);
     std::vector<std::pair<float, uint64_t>> queryAndInsert(const std::vector<T>& data,const uint64_t label,const unsigned k);

@@ -54,6 +54,13 @@ int main(){
   db.save("testdb");
   bigo::ml::FeatureDB<float> ldb("cosine",dim,60,3600000,120,360);
   ldb.restore("testdb");
+
+//#pragma omp parallel for
+  for(int i = 0 ; i < data.size() ; ++i){
+    std::vector<float> dt(data[i],data[i] + dim);
+    ldb.insert(dt,i);
+  }
+
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> qr(data[i],data[i] + dim);

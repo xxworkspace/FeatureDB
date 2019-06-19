@@ -32,10 +32,14 @@ int main(){
   //fvecs("sift_query.fvecs",query,dim);
   
   bigo::ml::FeatureDB<float> db("cosine",dim,60,3600000,120,360);
+
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> dt(data[i],data[i] + dim);
     db.insert(dt,i);
+
+    if(i % 400 == 0)
+      db.save("testdb");
   }
 /*
 #pragma omp parallel for
@@ -61,6 +65,7 @@ int main(){
     ldb.insert(dt,i);
   }
 
+/*
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> qr(data[i],data[i] + dim);
@@ -69,6 +74,7 @@ int main(){
       std::cout<<i<<" "<<tmp.first<<" "<<tmp.second<<"  ||  ";
     std::cout<<std::endl;
   }
+  */
 /*
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; ++i){

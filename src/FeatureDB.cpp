@@ -16,6 +16,7 @@ namespace ml{
     const unsigned construction_ef,
     const std::string dtype)
     :Dim(dim) {
+    dist = space_name;
     normalize = false;
     initialize = false;
     hnswlib::SpaceInterface<float> *space;
@@ -68,6 +69,27 @@ namespace ml{
     return true;
   }
 
+  template<class T>
+  void FeatureDB<T>::save(const std::string filename){
+    ((INDEX*)hnsw)->saveIndex(filename);
+  }
+
+  template<class T>
+  bool FeatureDB<T>::restore(const std::string filename){
+    if(initialize) return false;
+    delete ((INDEX*)hnsw);
+    hnswlib::SpaceInterface<float> *space;
+    if (dist == "ip") space = new hnswlib::InnerProductSpace(Dim);
+    else if (dist == "l2") space = new hnswlib::L2Space(Dim);
+    else if (dist == "cosine") {
+      space = new hnswlib::InnerProductSpace(Dim);
+      normalize = true;
+    }
+    hnsw = (void*)new INDEX(space,filename);
+
+    initialize = true;
+    return true;
+  }
 #define CHECK_DIM(obj, src, rt) \
     if (obj != src) return rt;
 

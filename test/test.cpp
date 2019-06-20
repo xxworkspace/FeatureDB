@@ -35,7 +35,6 @@ int main(){
     std::vector<float> dt(data[i],data[i] + dim);
     db.insert(dt,i);
   }
-  std::cout<<"Call me!"<<std::endl;
 /*
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; i++){
@@ -51,8 +50,11 @@ int main(){
   bigo::ml::FeatureDB<float> gdb("cosine",dim,60,3600000,120,360);
   gdb.load(serial);
 
+  db.save("testdb");
+  bigo::ml::FeatureDB<float> ldb("cosine",dim,60,3600000,120,360);
+  ldb.restore("testdb");
 
-//#pragma omp parallel for
+#pragma omp parallel for
   for(int i = 0 ; i < data.size() ; ++i){
     std::vector<float> qr(data[i],data[i] + dim);
     auto rs = gdb.query(qr,2);
@@ -62,10 +64,6 @@ int main(){
   }
 
 /*
-  db.save("testdb");
-  bigo::ml::FeatureDB<float> ldb("cosine",dim,60,3600000,120,360);
-  ldb.restore("testdb");
-
 #pragma omp parallel for
   for(int i = 0 ; i < data.size() ; i++){
     std::vector<float> qr(data[i],data[i] + dim);

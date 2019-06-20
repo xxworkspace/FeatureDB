@@ -1,10 +1,11 @@
 
 #include "FeatureDB.h"
+#include "shared_lock.h"
 #include "HierarchicalNSW/hnsw.h"
 
 namespace bigo{
 namespace ml {
-
+  static SharedLock slock;
   typedef hnsw::HierarchicalNSW<half,half,float> INDEX;
   template<class T>
   FeatureDB<T>::FeatureDB(
@@ -46,7 +47,10 @@ namespace ml {
 
   template<class T>
   const std::vector<char> FeatureDB<T>::dump() {
-    return ((INDEX*)hnsw)->dump();
+    slock.wLock();
+    auto result = ((INDEX*)hnsw)->dump();
+    slock.wRelease();
+    return result;
   }
 
   template<class T>
@@ -59,7 +63,10 @@ namespace ml {
 
   template<class T>
   void FeatureDB<T>::save(const std::string filename){
+    slock.wLock();
     ((INDEX*)hnsw)->writeOut(filename);
+    slock.wRelease();
+    std::cout<<"Call Me!"<<std::endl;
   }
   template<class T>
   bool FeatureDB<T>::restore(const std::string filename){
@@ -89,7 +96,9 @@ namespace ml {
     CHECK_EQ(data.size(), Dim, false)
 
     __ToHalf__
+    slock.rLock();
     ((INDEX*)hnsw)->insertPoint((half*)tmp, label);
+    slock.rRelease();
     free(tmp);
     return true;
   }
@@ -124,7 +133,9 @@ namespace ml {
       result[i] = top_candidate.top();
       top_candidate.pop();
     }
+    slock.rLock();
     ((INDEX*)hnsw)->insertPoint((half*)tmp, label);
+    slock.rRelease();
     free(tmp);
     return result;
   }
@@ -142,8 +153,11 @@ namespace ml {
       result[i] = top_candidate.top();
       top_candidate.pop();
     }
-    if (result[0].first > threshold)
+    if (result[0].first > threshold){
+      slock.rLock();
       ((INDEX*)hnsw)->insertPoint((half*)tmp, label);
+      slock.rRelease();
+    }
     free(tmp);
     return result;
   }
